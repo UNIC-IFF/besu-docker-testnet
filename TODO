@@ -1,0 +1,10 @@
+# TODO file
+
+* Curl does not connect to the client. Connection refused by client. It's probably the CORS setting.
+
+* Check if bootnodes in configuration files is required. they are in genesis file
+* Remove default accounts
+* Make it fully parameterized. (Functions are tested.)
+* update templates based on docker-compose-test.yml file.
+
+

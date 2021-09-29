@@ -1,0 +1,76 @@
+version: "3.5"
+
+networks:
+  eth-testnet:
+    external: true
+    name: eth-docker-testnet
+
+services:
+  validator-0:
+    image: hyperledger/besu:latest
+    container_name: validator-0
+    environment:
+      - BESU_CONFIG=/home/besu/config/config.toml
+      - BESU_DATA_PATH=/home/besu/data
+#      - BESU_OPTS="--Xdns-enabled true --Xdns-update-enabled true"
+    networks:
+      - eth-testnet
+    expose:
+      - 8545
+      - 8546
+      - 30303
+      - 30303/udp
+    ports:
+      - 28540:8545
+#    ports:
+#      - ${LOCAL_RPC_HTTP__PORT}:8545
+#      - ${LOCAL_RPC_WS_PORT}:8546
+#      - ${LOCAL_P2P_PORT}:30303
+    volumes:
+      - ./deployment-test/validator-0/:/home/besu
+      
+  validator-1:
+    image: hyperledger/besu:latest
+    container_name: validator-1
+    environment:
+      - BESU_CONFIG=/home/besu/config/config.toml
+      - BESU_DATA_PATH=/home/besu/data
+#      - BESU_OPTS="--Xdns-enabled true --Xdns-update-enabled true"
+    networks:
+      - eth-testnet
+    expose:
+      - 8545
+      - 8546
+      - 30303
+      - 30303/udp
+    ports:
+      - 28541:8545
+#    ports:
+#      - ${LOCAL_RPC_HTTP__PORT}:8545
+#      - ${LOCAL_RPC_WS_PORT}:8546
+#      - ${LOCAL_P2P_PORT}:30303
+    volumes:
+      - ./deployment-test/validator-1/:/home/besu
+
+  validator-2:
+    image: hyperledger/besu:latest
+    container_name: validator-2
+    environment:
+      - BESU_CONFIG=/home/besu/config/config.toml
+      - BESU_DATA_PATH=/home/besu/data
+ #     - BESU_OPTS="--Xdns-enabled true --Xdns-update-enabled true"
+    networks:
+      - eth-testnet
+    expose:
+      - 8545
+      - 8546
+      - 30303
+      - 30303/udp
+    ports:
+      - 28542:8545
+#      - ${LOCAL_RPC_HTTP__PORT}:8545
+#      - ${LOCAL_RPC_WS_PORT}:8546
+#      - ${LOCAL_P2P_PORT}:30303
+    volumes:
+      - ./deployment-test/validator-2/:/home/besu
+      

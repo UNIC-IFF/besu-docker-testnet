@@ -1,0 +1,39 @@
+# Valid TOML config file
+identity="${VALNAME}"
+# Network
+#bootnodes=["",""]
+
+p2p-host="0.0.0.0"
+p2p-port=30303
+max-peers=42
+
+rpc-http-host="0.0.0.0"
+rpc-http-port=8545
+
+rpc-ws-host="0.0.0.0"
+rpc-ws-port=8546
+
+graphql-http-enabled=true
+graphql-http-host="0.0.0.0"
+graphql-http-port=8547
+graphql-http-cors-origins=["*"]
+
+#metrics
+#metrics-enabled=true
+#metrics-host="0.0.0.0"
+#metrics-port=9545
+#metrics-protocol=PROMETHEUS
+
+metrics-push-enabled=true
+metrics-push-host="pushgateway"
+metrics-push-port=9001
+metrics-push-interval=15
+metrics-prometheus-job="${PROMJOB}"
+
+# Chain
+genesis-file="/home/besu/config/network-genesis.json" # Path to the custom genesis file
+
+# Mining
+miner-enabled=true
+#miner-coinbase="0xfe3b557e8fb62b89f4916b721be55ceb828dbd73"
+
