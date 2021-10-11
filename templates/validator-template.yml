@@ -1,9 +1,9 @@
-  eth-${VAL_NAME_PREFIX}${VAL_ID}:
+  ${VALNAME}:
     image: hyperledger/besu:latest
-    container_name: ${VAL_NAME_PREFIX}${VAL_ID}
+    container_name: ${VALNAME}
     environment:
-      -BESU_CONFIG:/home/besu/config/config.toml
-      -BESU_DATA_PATH:/home/besu/data
+      - BESU_CONFIG:/home/besu/config/config.toml
+      - BESU_DATA_PATH:/home/besu/data
     networks:
       - eth-testnet
     expose:
