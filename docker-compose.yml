@@ -1,9 +1,18 @@
-  validator-0:
+version: "3.5"
+
+networks:
+  eth_private_testnet:
+    name: ${TESTNET_NAME:-eth_docker_testnet}
+    external: true
+
+services:
+
+  besu-validator-1:
     image: hyperledger/besu:latest
-    container_name: validator-0
+    container_name: besu-validator-1
     environment:
-      -BESU_CONFIG:/home/besu/config/config.toml
-      -BESU_DATA_PATH:/home/besu/data
+      - BESU_CONFIG:/home/besu/config/config.toml
+      - BESU_DATA_PATH:/home/besu/data
     networks:
       - eth-testnet
     expose:
@@ -16,14 +25,14 @@
 #      - ${LOCAL_RPC_WS_PORT}:8546
 #      - ${LOCAL_P2P_PORT}:30303
     volumes:
-      - ${LOCAL_BESU_DEPLOY_PATH}:/home/besu
+      - ./deployment-test//besu-validator-1:/home/besu
       
-  validator-1:
+  besu-validator-0:
     image: hyperledger/besu:latest
-    container_name: validator-1
+    container_name: besu-validator-0
     environment:
-      -BESU_CONFIG:/home/besu/config/config.toml
-      -BESU_DATA_PATH:/home/besu/data
+      - BESU_CONFIG:/home/besu/config/config.toml
+      - BESU_DATA_PATH:/home/besu/data
     networks:
       - eth-testnet
     expose:
@@ -36,5 +45,5 @@
 #      - ${LOCAL_RPC_WS_PORT}:8546
 #      - ${LOCAL_P2P_PORT}:30303
     volumes:
-      - ${LOCAL_BESU_DEPLOY_PATH}:/home/besu
+      - ./deployment-test//besu-validator-0:/home/besu
       

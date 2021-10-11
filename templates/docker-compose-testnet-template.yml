@@ -1,7 +1,7 @@
 version: "3.5"
 
 networks:
-  eth_private_testnet:
+  eth-testnet:
     name: ${TESTNET_NAME:-eth_docker_testnet}
     external: true
 

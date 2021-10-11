@@ -9,7 +9,9 @@ source $ENVFILE
 WORKING_DIR=$(realpath $(dirname $0))
 TEMPLATES_DIR=$(realpath $(dirname $0)/templates/)
 COMPOSE_FILENAME=$(dirname $0)/docker-compose-testnet.yaml
-
+SOLO_DOCKER_COMPOSE=$(dirname $0)/docker-compose-test-single.yml
+DEPLOYMENT_ROOT=$(dirname $0)/$DEPLOYMENT_ROOT
+TEMPLATE_DIR=$(dirname $0)/$TEMPLATE_DIR
 OUTPUT_DIR=${DEPLOYMENT_ROOT:-$(realpath $(dirname $0)/configfiles)}
 
 
@@ -146,10 +148,10 @@ function generate_network_configs()
   generate_bootnodes_config $(seq 0 1 $(($nbootvals-1)))
   generate_validators_config $nbootvals $nvals
   valdirs=$(find ${DEPLOYMENT_ROOT} -name "validator-service.yml")
-  cp $TEMPLATE_DIR/docker-compose-testnet-template.yml $WORKING_DIR/docker-compose.yml
+  cp $TEMPLATE_DIR/docker-compose-testnet-template.yml ${COMPOSE_FILENAME}
   for v in "${valdirs[@]}"; do
     echo $v
-    cat $v >> $WORKING_DIR/docker-compose.yml
+    cat $v >> ${COMPOSE_FILENAME}
   done
 #  dockercompose_testnet_generator ${nvals} ${OUTPUT_DIR}
   echo "  done!"
@@ -166,7 +168,7 @@ function start_network()
   #run testnet
   echo "Starting the testnet..."
 
-  TESTNET_NAME=${TESTNET_NAME} CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${WORKING_DIR}/${COMPOSE_FILENAME} up -d
+  TESTNET_NAME=${TESTNET_NAME} CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${COMPOSE_FILENAME} up -d
 
   echo "Waiting for everything goes up..."
   sleep 10
@@ -177,7 +179,7 @@ function stop_network()
 {
   echo "Stopping network..."
   # TESTNET_NAME=$TESTNET_NAME docker-compose -f docker-compose-testnet.yml down
-  TESTNET_NAME=${TESTNET_NAME} CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${WORKING_DIR}/${COMPOSE_FILENAME} down
+  TESTNET_NAME=${TESTNET_NAME} CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${COMPOSE_FILENAME} down
   echo "  stopped!"
 }
 
@@ -185,7 +187,7 @@ function print_status()
 {
   echo "Printing status of the  network..."
   # TESTNET_NAME=$TESTNET_NAME docker-compose -f docker-compose-testnet.yml status
-  TESTNET_NAME=${TESTNET_NAME} CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${WORKING_DIR}/${COMPOSE_FILENAME} ps
+  TESTNET_NAME=${TESTNET_NAME} CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${COMPOSE_FILENAME} ps
 
   echo "  Finished!"
 }
