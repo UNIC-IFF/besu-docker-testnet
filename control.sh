@@ -13,7 +13,7 @@ SOLO_DOCKER_COMPOSE=$(dirname $0)/docker-compose-test-single.yml
 DEPLOYMENT_ROOT=$(dirname $0)/$DEPLOYMENT_ROOT
 TEMPLATE_DIR=$(dirname $0)/$TEMPLATE_DIR
 OUTPUT_DIR=${DEPLOYMENT_ROOT:-$(realpath $(dirname $0)/configfiles)}
-
+FIXED_IP_PREFIX="192.168.190.1"
 
 ###
 
@@ -66,6 +66,7 @@ function generate_bootnodes_config ()
   bootnodes_ids=($@)
   echo "${bootnodes_ids[@]}"
   
+  bootnodes_list=""
   bootnodes_addrs=""
   echo "">$DEPLOYMENT_ROOT/bootnodes.txt
   for v in "${bootnodes_ids[@]}";
@@ -75,10 +76,17 @@ function generate_bootnodes_config ()
     generate_validator_keys $v
     nodeAddr=$(cat $local_deploy_path/nodeaddress  | python3 -c 'import sys; a=input(); print(a[2:])')
     bootnodes_addrs=$bootnodes_addrs$nodeAddr
-    echo "enode://$nodeAddr@${VALIDATORS_NAME_PREFIX}$v:30303?discport=30303">>$DEPLOYMENT_ROOT/bootnodes.txt
+    pubkey=$(cat $local_deploy_path/pubkey  | python3 -c 'import sys; a=input(); print(a[2:])')
+    bootnode_fixed_ip="${FIXED_IP_PREFIX}$v"
+    echo $bootnode_fixed_ip > $local_deploy_path/ipaddress
+    echo "# ${VALIDATORS_NAME_PREFIX}$v" >> $DEPLOYMENT_ROOT/bootnodes.txt
+    echo "enode://$pubkey@${bootnode_fixed_ip}:30303?discport=30303" >> $DEPLOYMENT_ROOT/bootnodes.txt
+    bootnodes_list="$bootnodes_list\"enode://$pubkey@${bootnode_fixed_ip}:30303?discport=30303\", "
   done
-  echo $bootnodes_addrs
-  
+  echo Bootnode addresses: $bootnodes_addrs
+  echo bootnodes list: $bootnodes_list
+  echo $bootnodes_list > $DEPLOYMENT_ROOT/bootnodes.list
+
  #generating the genesisFile
  sed -e "s/\${CHAIN_ID}/${CHAIN_ID}/g" \
      -e "s/\${BOOTNODE1_ADDRESS}/$bootnodes_addrs/g" \
@@ -90,13 +98,16 @@ function generate_bootnodes_config ()
     echo $v
     local_deploy_path=${DEPLOYMENT_ROOT}/${VALIDATORS_NAME_PREFIX}$v
     mkdir -p $local_deploy_path/config
+    val_ip_addr=$(cat $local_deploy_path/ipaddress)
     cp ${DEPLOYMENT_ROOT}/network-genesis.json $local_deploy_path/config/network-genesis.json
     sed -e "s/\${VALNAME}/${VALIDATORS_NAME_PREFIX}$v/g" \
         -e "s/\${PROMJOB}/${VALIDATORS_NAME_PREFIX}$v/g" \
+        -e "s#\${BOOTNODES}#${bootnodes_list}#g" \
         $TEMPLATE_DIR/config-template.toml > $local_deploy_path/config/config.toml
     sed -e "s/\${VALNAME}/${VALIDATORS_NAME_PREFIX}$v/g" \
         -e "s#\${LOCAL_BESU_DEPLOY_PATH}#${local_deploy_path}#g" \
-        $TEMPLATE_DIR/validator-template.yml > $local_deploy_path/validator-service.yml
+        -e "s#\${IPADDR}#${val_ip_addr}#g" \
+        $TEMPLATE_DIR/bootnode-validator-template.yml > $local_deploy_path/validator-service.yml
 
   done
 
@@ -111,7 +122,6 @@ function generate_validators_config ()
   #echo "${bootnodes_ids[@]}"
 
   bootnodes_addrs=""
-  echo "">$DEPLOYMENT_ROOT/bootnodes.txt
   for v in $(seq $start_id 1 $end_id);
   do
     echo $v
@@ -119,7 +129,7 @@ function generate_validators_config ()
     generate_validator_keys $v
     #nodeAddr=$(cat $local_deploy_path/nodeaddress  | python3 -c 'import sys; a=input(); print(a[2:])')
   done
-  
+  bootnodes_list=$(cat $DEPLOYMENT_ROOT/bootnodes.list)
  # copy genesis file to all validators
   for v in $(seq $start_id 1 $end_id);
   do
@@ -129,6 +139,7 @@ function generate_validators_config ()
     cp ${DEPLOYMENT_ROOT}/network-genesis.json $local_deploy_path/config/network-genesis.json
     sed -e "s/\${VALNAME}/${VALIDATORS_NAME_PREFIX}$v/g" \
         -e "s/\${PROMJOB}/${VALIDATORS_NAME_PREFIX}$v/g" \
+        -e "s#\${BOOTNODES}#${bootnodes_list}#g" \
         $TEMPLATE_DIR/config-template.toml > $local_deploy_path/config/config.toml
     sed -e "s/\${VALNAME}/${VALIDATORS_NAME_PREFIX}$v/g" \
         -e "s#\${LOCAL_BESU_DEPLOY_PATH}#${local_deploy_path}#g" \
@@ -168,7 +179,7 @@ function start_network()
   #run testnet
   echo "Starting the testnet..."
 
-  TESTNET_NAME=${TESTNET_NAME} CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${COMPOSE_FILENAME} up -d
+  TESTNET_NAME=${TESTNET_NAME} MONITORING_NET=${MONITORING_NET}  CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${COMPOSE_FILENAME} up -d
 
   echo "Waiting for everything goes up..."
   sleep 10
@@ -179,7 +190,7 @@ function stop_network()
 {
   echo "Stopping network..."
   # TESTNET_NAME=$TESTNET_NAME docker-compose -f docker-compose-testnet.yml down
-  TESTNET_NAME=${TESTNET_NAME} CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${COMPOSE_FILENAME} down
+  TESTNET_NAME=${TESTNET_NAME}   MONITORING_NET=${MONITORING_NET}  CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${COMPOSE_FILENAME} down
   echo "  stopped!"
 }
 
@@ -187,7 +198,7 @@ function print_status()
 {
   echo "Printing status of the  network..."
   # TESTNET_NAME=$TESTNET_NAME docker-compose -f docker-compose-testnet.yml status
-  TESTNET_NAME=${TESTNET_NAME} CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${COMPOSE_FILENAME} ps
+  TESTNET_NAME=${TESTNET_NAME}  MONITORING_NET=${MONITORING_NET}  CONFIGFILES=${OUTPUT_DIR} IMAGE_TAG=${IMAGE_TAG} docker-compose -f ${COMPOSE_FILENAME} ps
 
   echo "  Finished!"
 }

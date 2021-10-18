@@ -2,7 +2,16 @@ version: "3.5"
 
 networks:
   eth-testnet:
-    name: ${TESTNET_NAME:-eth_docker_testnet}
+#    name: ${TESTNET_NAME:-eth_docker_testnet}
+    name: besu_testnet
+    external: false
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.190.0/24
+
+  monitoring-net:
+    name: ${MONITORING_NET:-bbf_mon_net}
     external: true
 
 services:

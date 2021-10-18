@@ -6,7 +6,7 @@
       - BESU_DATA_PATH=/home/besu/data
     networks:
       eth-testnet:
-#        ipv4_address: ${IPADDR}
+        ipv4_address: ${IPADDR}
       monitoring-net:
     expose:
       - 8545
