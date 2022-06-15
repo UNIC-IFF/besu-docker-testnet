@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VAL_NAME_PREFIX_DEFAULT="validator-"
+VAL_NAME_PREFIX_DEFAULT="besu-validator-"
 OUTPUT_DIR_DEFAULT="./validators-config/"
 
 IPS_FILENAME="ips_fixed.lst"
